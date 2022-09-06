@@ -1,7 +1,13 @@
-import json
+import pickle
 
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.shortcuts import render, redirect
+
+from allianceauth.services.hooks import get_extension_logger
+
+from .forms import BackupForm
+
+logger = get_extension_logger(__name__)
 
 
 @login_required
@@ -14,7 +20,14 @@ def index(request):
 @user_passes_test(lambda user: user.is_superuser)
 def dashboard(request):
     if request.method == 'POST':
-        file = request.FILES['OutfitBackup']
-        data = json.load(file)
-    context = {}
+        form = BackupForm(request.POST, request.FILES)
+        if form.is_valid():
+            data = pickle.load(form.cleaned_data['file'])
+            logger.debug(data)
+            logger.debug("DATA HERE")
+    else:
+        form = BackupForm()
+    context = {
+        'form': form
+    }
     return render(request, 'outfit418_backup_ratting/index.html', context=context)
