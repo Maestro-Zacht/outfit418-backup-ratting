@@ -81,24 +81,21 @@ def save_import(data):
 def update_shares_users():
     fake_user = get_fake_user()
 
-    for share in EntryCharacter.objects.filter(user=fake_user):
-        user = get_user_or_fake(share.user_character)
+    for character_id in EntryCharacter.objects.filter(user=fake_user).values_list('user_character_id', flat=True).distinct():
+        user = get_user_or_fake(character_id)
         if user != fake_user:
-            share.user = user
-            share.save()
+            EntryCharacter.objects.filter(user_character_id=character_id).update(user=user)
 
 
 @shared_task
 def update_entries_users():
     fake_user = get_fake_user()
 
-    for entry_creat in EntryCreator.objects.all():
-        user = get_user_or_fake(entry_creat.creator_character_id)
+    for entry_creator in EntryCreator.objects.all().values_list('creator_character_id', flat=True).distinct():
+        user = get_user_or_fake(entry_creator)
         if user != fake_user:
-            entry = entry_creat.entry
-            entry.created_by = user
-            entry.save()
-            entry_creat.delete()
+            entries_query = EntryCreator.objects.filter(creator_character_id=entry_creator).values('entry_id')
+            Entry.objects.filter(pk__in=entries_query).update(created_by=user)
 
 
 @shared_task
