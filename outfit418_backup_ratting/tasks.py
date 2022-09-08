@@ -4,7 +4,7 @@ from django.db import transaction
 
 from allianceauth.services.hooks import get_extension_logger
 
-from allianceauth_pve.models import Rotation, Entry, EntryCharacter, EntryRole
+from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
 from .utils import get_or_create_char, get_user_or_fake, get_fake_user
 from .models import EntryCreator
@@ -75,3 +75,33 @@ def save_rotation(rotation_data):
 def save_import(data):
     for rotation in data['rotations']:
         save_rotation.delay(rotation)
+
+
+@shared_task
+def update_shares_users():
+    fake_user = get_fake_user()
+
+    for share in EntryCharacter.objects.filter(user=fake_user):
+        user = get_user_or_fake(share.user_character)
+        if user != fake_user:
+            share.user = user
+            share.save()
+
+
+@shared_task
+def update_entries_users():
+    fake_user = get_fake_user()
+
+    for entry_creat in EntryCreator.objects.all():
+        user = get_user_or_fake(entry_creat.creator_character_id)
+        if user != fake_user:
+            entry = entry_creat.entry
+            entry.created_by = user
+            entry.save()
+            entry_creat.delete()
+
+
+@shared_task
+def update_fake_users():
+    update_entries_users.delay()
+    update_shares_users.delay()
