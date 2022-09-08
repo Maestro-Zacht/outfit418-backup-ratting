@@ -43,7 +43,7 @@ def save_rotation(rotation_data):
         if creator == fake_user:
             EntryCreator.objects.create(
                 entry=entry,
-                creator_character_id=entry_data['created_by']
+                creator_characterid=entry_data['created_by']
             )
 
         Entry.objects.filter(pk=entry.pk).update(
@@ -91,10 +91,10 @@ def update_shares_users():
 def update_entries_users():
     fake_user = get_fake_user()
 
-    for entry_creator in EntryCreator.objects.all().values_list('creator_character_id', flat=True).distinct():
+    for entry_creator in EntryCreator.objects.all().values_list('creator_characterid', flat=True).distinct():
         user = get_user_or_fake(entry_creator)
         if user != fake_user:
-            entries_query = EntryCreator.objects.filter(creator_character_id=entry_creator).values('entry_id')
+            entries_query = EntryCreator.objects.filter(creator_characterid=entry_creator).values('entry_id')
             Entry.objects.filter(pk__in=entries_query).update(created_by=user)
 
 
