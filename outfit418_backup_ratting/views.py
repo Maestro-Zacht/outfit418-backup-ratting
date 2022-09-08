@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from allianceauth.services.hooks import get_extension_logger
 
 from .forms import BackupForm
+from .tasks import save_import
 
 logger = get_extension_logger(__name__)
 
@@ -23,8 +24,7 @@ def dashboard(request):
         form = BackupForm(request.POST, request.FILES)
         if form.is_valid():
             data = pickle.load(form.cleaned_data['file'])
-            logger.debug(data)
-            logger.debug("DATA HERE")
+            save_import.delay(data)
     else:
         form = BackupForm()
     context = {
