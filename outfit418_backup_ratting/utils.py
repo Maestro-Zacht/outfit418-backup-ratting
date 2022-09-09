@@ -17,7 +17,7 @@ def get_fake_user() -> User:
     try:
         user: User = User.objects.get(username='Outfit418')
     except User.DoesNotExist:
-        user: User = User.objects.create_user('Outfit418', is_active=False)
+        user: User = User.objects.create_user('Backup User', is_active=False)
         user.set_unusable_password()  # prevent login via password
         user.save()
 

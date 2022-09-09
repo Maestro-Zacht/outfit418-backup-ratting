@@ -7,7 +7,7 @@ from allianceauth.services.hooks import get_extension_logger
 from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
 from .utils import get_or_create_char, get_user_or_fake, get_fake_user
-from .models import EntryCreator
+from .models import EntryCreator, ShareUser
 
 
 logger = get_extension_logger(__name__)
@@ -34,6 +34,7 @@ def save_rotation(rotation_data):
 
     for entry_data in rotation_data['entries']:
         creator = get_user_or_fake(entry_data['created_by'])
+        char = get_or_create_char(entry_data['created_by'])
 
         entry = rotation.entries.create(
             estimated_total=entry_data['estimated_total'],
@@ -43,7 +44,7 @@ def save_rotation(rotation_data):
         if creator == fake_user:
             EntryCreator.objects.create(
                 entry=entry,
-                creator_characterid=entry_data['created_by']
+                creator_character=char
             )
 
         Entry.objects.filter(pk=entry.pk).update(
@@ -60,7 +61,7 @@ def save_rotation(rotation_data):
             user = get_user_or_fake(share_data['character'])
             character = get_or_create_char(share_data['character'])
 
-            entry.ratting_shares.create(
+            share = entry.ratting_shares.create(
                 user=user,
                 user_character=character,
                 role=role,
@@ -69,6 +70,12 @@ def save_rotation(rotation_data):
                 estimated_share_total=share_data['estimated_share_total'],
                 actual_share_total=share_data['actual_share_total']
             )
+
+            if user == fake_user:
+                ShareUser.objects.create(
+                    share=share,
+                    character=character
+                )
 
 
 @shared_task
