@@ -3,6 +3,7 @@ from celery import shared_task
 from django.db import transaction
 
 from allianceauth.services.hooks import get_extension_logger
+from allianceauth.authentication.models import CharacterOwnership
 
 from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
@@ -85,27 +86,19 @@ def save_import(data):
 
 
 @shared_task
-def update_shares_users():
-    fake_user = get_fake_user()
-
-    for character_id in EntryCharacter.objects.filter(user=fake_user).values_list('user_character_id', flat=True).distinct():
-        user = get_user_or_fake(character_id)
-        if user != fake_user:
-            EntryCharacter.objects.filter(user_character_id=character_id).update(user=user)
-
-
-@shared_task
-def update_entries_users():
-    fake_user = get_fake_user()
-
-    for entry_creator in EntryCreator.objects.all().values_list('creator_characterid', flat=True).distinct():
-        user = get_user_or_fake(entry_creator)
-        if user != fake_user:
-            entries_query = EntryCreator.objects.filter(creator_characterid=entry_creator).values('entry_id')
-            Entry.objects.filter(pk__in=entries_query).update(created_by=user)
-
-
-@shared_task
 def update_fake_users():
-    update_entries_users.delay()
-    update_shares_users.delay()
+    characters = ShareUser.objects.all().values('character')
+
+    for ownership in CharacterOwnership.objects.filter(character__in=characters):
+        with transaction.atomic():
+            shares_qs = ShareUser.objects.filter(character=ownership.character)
+            EntryCharacter.objects.filter(pk__in=shares_qs.values('share_id')).update(user=ownership.user)
+            shares_qs.delete()
+
+    characters = EntryCreator.objects.all().values('creator_character')
+
+    for ownership in CharacterOwnership.objects.filter(character__in=characters):
+        with transaction.atomic():
+            entry_qs = EntryCreator.objects.filter(creator_character=ownership.character)
+            Entry.objects.filter(pk__in=entry_qs.values('entry_id')).update(created_by=ownership.user)
+            entry_qs.delete()
