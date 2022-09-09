@@ -1,5 +1,6 @@
 import pickle
 
+from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.shortcuts import render, redirect
 
@@ -25,6 +26,9 @@ def dashboard(request):
         if form.is_valid():
             data = pickle.load(form.cleaned_data['file'])
             save_import.delay(data)
+
+            messages.success(request, 'Backup task called successfully!')
+            return redirect('allianceauth_pve:index')
     else:
         form = BackupForm()
     context = {
