@@ -15,11 +15,17 @@ logger = get_extension_logger(__name__)
 
 
 @shared_task
+def fetch_char(char_id):
+    if char_id != 1:
+        get_or_create_char(char_id)
+
+
+@shared_task
 @transaction.atomic
 def save_import(data):
     fake_user = get_fake_user()
 
-    for rotation_data in data['rotations']:
+    for rotation_data in data:
         rotation = Rotation.objects.create(
             name=rotation_data['name'],
             actual_total=rotation_data['actual_total'],

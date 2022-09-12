@@ -4,10 +4,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.shortcuts import render, redirect
 
+from celery import chord
+
 from allianceauth.services.hooks import get_extension_logger
 
 from .forms import BackupForm
-from .tasks import save_import
+from .tasks import save_import, fetch_char
 
 logger = get_extension_logger(__name__)
 
@@ -25,7 +27,10 @@ def dashboard(request):
         form = BackupForm(request.POST, request.FILES)
         if form.is_valid():
             data = pickle.load(form.cleaned_data['file'])
-            save_import.delay(data)
+            chord(
+                (fetch_char.s(char_id) for char_id in data['character_list']),
+                save_import.si(data['rotations'])
+            ).delay()
 
             messages.success(request, 'Backup task called successfully!')
             return redirect('allianceauth_pve:index')

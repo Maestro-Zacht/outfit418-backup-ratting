@@ -15,7 +15,7 @@ def get_or_create_char(character_id: int) -> EveCharacter:
 
 def get_fake_user() -> User:
     try:
-        user: User = User.objects.get(username='Outfit418')
+        user: User = User.objects.get(username='Backup User')
     except User.DoesNotExist:
         user: User = User.objects.create_user('Backup User', is_active=False)
         user.set_unusable_password()  # prevent login via password
@@ -25,6 +25,9 @@ def get_fake_user() -> User:
 
 
 def get_user_or_fake(character_id) -> User:
+    if character_id == 1:
+        return get_fake_user()
+
     char = get_or_create_char(character_id)
     try:
         ownership = CharacterOwnership.objects.get(character=char)
