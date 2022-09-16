@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('eveonline', '0016_character_names_are_not_unique'),
-        ('allianceauth_pve', '0013_alter_rotation_entry_buttons_and_more'),
+        ('allianceauth_pve', '0012_alter_entry_options_and_more'),
     ]
 
     operations = [
