@@ -7,7 +7,7 @@ from allianceauth.authentication.models import CharacterOwnership
 
 from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
-from .utils import get_or_create_char, get_user_or_fake, get_fake_user
+from .utils import get_or_create_char, get_user_or_fake, get_default_user
 from .models import EntryCreator, ShareUser
 
 
@@ -23,7 +23,7 @@ def fetch_char(char_id):
 @shared_task
 @transaction.atomic
 def save_import(data):
-    fake_user = get_fake_user()
+    fake_user = get_default_user()
 
     for rotation_data in data:
         rotation = Rotation.objects.create(
@@ -34,6 +34,10 @@ def save_import(data):
             is_paid_out=rotation_data['is_paid_out'],
             priority=rotation_data['priority'],
         )
+
+        if rotation_data['name'] == '':
+            rotation.name = f"Rotation {rotation.pk}"
+            rotation.save()
 
         Rotation.objects.filter(pk=rotation.pk).update(
             created_at=rotation_data['created_at'],

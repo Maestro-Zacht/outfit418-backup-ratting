@@ -5,6 +5,9 @@ from allianceauth.authentication.models import CharacterOwnership
 
 
 def get_or_create_char(character_id: int) -> EveCharacter:
+    if character_id == 1:
+        character_id = 2120413474
+
     char = EveCharacter.objects.get_character_by_id(character_id)
 
     if char is None:
@@ -13,24 +16,15 @@ def get_or_create_char(character_id: int) -> EveCharacter:
     return char
 
 
-def get_fake_user() -> User:
-    try:
-        user: User = User.objects.get(username='Backup User')
-    except User.DoesNotExist:
-        user: User = User.objects.create_user('Backup User', is_active=False)
-        user.set_unusable_password()  # prevent login via password
-        user.save()
-
-    return user
+def get_default_user() -> User:
+    char = get_or_create_char(2120413474)
+    return char.character_ownership.user
 
 
 def get_user_or_fake(character_id) -> User:
-    if character_id == 1:
-        return get_fake_user()
-
     char = get_or_create_char(character_id)
     try:
         ownership = CharacterOwnership.objects.get(character=char)
         return ownership.user
     except CharacterOwnership.DoesNotExist:
-        return get_fake_user()
+        return get_default_user()
