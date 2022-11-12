@@ -28,7 +28,7 @@ def save_import(data):
     for rotation_data in data:
         rotation = Rotation.objects.create(
             name=rotation_data['name'],
-            actual_total=rotation_data['actual_total'],
+            actual_total=int(rotation_data['actual_total']),
             tax_rate=rotation_data['tax_rate'],
             is_closed=rotation_data['is_closed'],
             is_paid_out=rotation_data['is_paid_out'],
@@ -79,8 +79,6 @@ def save_import(data):
                     role=role,
                     site_count=share_data['share_count'],
                     helped_setup=share_data['helped_setup'],
-                    estimated_share_total=share_data['estimated_share_total'],
-                    actual_share_total=share_data['actual_share_total']
                 )
 
                 if user == fake_user:
