@@ -37,6 +37,8 @@
 
 {% block extra_script %}
     $(document).ready(function() {
-        $('.table').DataTable();
+        $('.table').DataTable({
+            "pageLength": 50
+        });
     });
 {% endblock extra_script %}
