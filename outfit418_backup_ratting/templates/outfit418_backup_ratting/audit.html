@@ -1,0 +1,42 @@
+{% extends 'allianceauth/base.html' %}
+
+{% block page_title %}418 Audit{% endblock page_title %}
+
+{% block extra_css %}
+    {% include "bundles/datatables-css.html" %}
+{% endblock %}
+
+{% block content %}
+    <div class="col-lg-12" style="padding: 10px 10px 10px 10px">
+        <table class="table table-aa">
+            <thead>
+                <tr>
+                    <th>Main</th>
+                    <th>Characters</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for main in mains %}
+                    <tr>
+                        <td>{{ main.character.character_name }}</td>
+                        <td>
+                            {% for char in main.character.character_ownership.user.chars %}
+                                <span class="label label-primary">{{ char.character.character_name }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+
+{% block extra_javascript %}
+    {% include "bundles/datatables-js.html" %}
+{% endblock extra_javascript %}
+
+{% block extra_script %}
+    $(document).ready(function() {
+        $('.table').DataTable();
+    });
+{% endblock extra_script %}
