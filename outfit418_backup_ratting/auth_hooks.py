@@ -19,7 +19,7 @@ class Outfit418BackupRattingItemHook(MenuItemHook):
 
 class Outfit418AuditHook(MenuItemHook):
     def __init__(self):
-        super().__init__("418 Audit", "fa-solid fa-magnifying-glass", "outfit418backup:audit", navactive=['outfit418backup:'])
+        super().__init__("418 Audit", "fas fa-search", "outfit418backup:audit", navactive=['outfit418backup:'])
 
     def render(self, request):
         if request.user.has_perm('outfit418_backup_ratting.audit_corp'):
