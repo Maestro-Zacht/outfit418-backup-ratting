@@ -1,12 +1,16 @@
 import pickle
 
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.decorators import user_passes_test, login_required, permission_required
 from django.shortcuts import render, redirect
+from django.db.models import F, Prefetch
 
 from celery import group
 
 from allianceauth.services.hooks import get_extension_logger
+from allianceauth.authentication.models import CharacterOwnership
+
+from corptools.models import CharacterAudit
 
 from .forms import BackupForm
 from .tasks import save_import, fetch_char
@@ -40,3 +44,27 @@ def dashboard(request):
         'form': form
     }
     return render(request, 'outfit418_backup_ratting/index.html', context=context)
+
+
+@login_required
+@permission_required('outfit418_backup_ratting.audit_corp')
+def audit(request):
+    corp_id = request.user.profile.main_character.corporation_id
+    ownership_qs = CharacterOwnership.objects.select_related('character')
+    mains = (
+        CharacterAudit.objects
+        .filter(
+            character__character_ownership__user__profile__main_character=F('character'),
+            character__corporation_id=corp_id,
+        )
+        .select_related('character__character_ownership__user')
+        .prefetch_related(
+            Prefetch(
+                'character__character_ownership__user__character_ownerships',
+                queryset=ownership_qs,
+                to_attr='chars',
+            ),
+        )
+    )
+
+    return render(request, 'outfit418_backup_ratting/audit.html', context={'mains': mains})
