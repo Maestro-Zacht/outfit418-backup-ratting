@@ -1,6 +1,33 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "outfit418_backup_ratting"
+dynamic = ["version"]
+authors = [
+    {name = "Matteo Ghia", email = "matteo.ghia@yahoo.it"},
 ]
-build-backend = "setuptools.build_meta"
+description = "Backup for Outfit418 data"
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = [
+    "allianceauth",
+	"allianceauth_pve",
+	"outfit418",
+	"eveonline",
+]
+requires-python = "~=3.8"
+dependencies = [
+    "allianceauth~=3.0",
+	"allianceauth_pve~=1.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/Maestro-Zacht/outfit418-backup-ratting"
+Source = "https://github.com/Maestro-Zacht/outfit418-backup-ratting"
+Tracker = "https://github.com/Maestro-Zacht/outfit418-backup-ratting/issues"
+Changelog = "https://github.com/Maestro-Zacht/outfit418-backup-ratting/releases"
+
+[tool.flit.module]
+name = "outfit418_backup_ratting"
