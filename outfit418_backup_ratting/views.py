@@ -3,7 +3,7 @@ import pickle
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required, permission_required
 from django.shortcuts import render, redirect
-from django.db.models import F, Prefetch
+from django.db.models import F, Prefetch, Exists, OuterRef
 
 from celery import group
 
@@ -50,7 +50,11 @@ def dashboard(request):
 @permission_required('outfit418_backup_ratting.audit_corp')
 def audit(request):
     corp_id = request.user.profile.main_character.corporation_id
-    ownership_qs = CharacterOwnership.objects.select_related('character')
+    ownership_qs = (
+        CharacterOwnership.objects
+        .filter(Exists(CharacterAudit.objects.filter(character=OuterRef('character'))))
+        .select_related('character')
+    )
     mains = (
         CharacterAudit.objects
         .filter(
