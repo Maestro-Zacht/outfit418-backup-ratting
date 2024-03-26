@@ -1,9 +1,10 @@
-{% extends 'allianceauth/base.html' %}
+{% extends 'allianceauth/base-bs5.html' %}
+{% load outfit_tags %}
 
 {% block page_title %}418 Audit{% endblock page_title %}
 
 {% block extra_css %}
-    {% include "bundles/datatables-css.html" %}
+    {% include "bundles/datatables-css-bs5.html" %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +22,7 @@
                         <td>{{ main.character.character_name }}</td>
                         <td>
                             {% for char in main.character.character_ownership.user.chars %}
-                                <span class="label label-primary">{{ char.character.character_name }}</span>
+                                <span class="badge {% if char.character|ct_is_active %}text-bg-primary{% else %}text-bg-danger{% endif %}">{{ char.character.character_name }}</span>
                             {% endfor %}
                         </td>
                     </tr>
@@ -32,7 +33,7 @@
 {% endblock content %}
 
 {% block extra_javascript %}
-    {% include "bundles/datatables-js.html" %}
+    {% include "bundles/datatables-js-bs5.html" %}
 {% endblock extra_javascript %}
 
 {% block extra_script %}

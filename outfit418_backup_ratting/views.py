@@ -50,11 +50,8 @@ def dashboard(request):
 @permission_required('outfit418_backup_ratting.audit_corp')
 def audit(request):
     corp_id = request.user.profile.main_character.corporation_id
-    ownership_qs = (
-        CharacterOwnership.objects
-        .filter(Exists(CharacterAudit.objects.filter(character=OuterRef('character'))))
-        .select_related('character')
-    )
+    ownership_qs = CharacterOwnership.objects.select_related('character__characteraudit')
+
     mains = (
         CharacterAudit.objects
         .filter(
