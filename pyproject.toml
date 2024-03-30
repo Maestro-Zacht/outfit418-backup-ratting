@@ -19,7 +19,7 @@ keywords = [
 ]
 requires-python = "~=3.8"
 dependencies = [
-    "allianceauth>=3.0.0,<5.0.0",
+    "allianceauth~=4.0",
 	"allianceauth_pve~=1.10",
 ]
 
