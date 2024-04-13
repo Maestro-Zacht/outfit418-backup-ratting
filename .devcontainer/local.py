@@ -13,9 +13,7 @@ DATABASES["default"] = {
     "PASSWORD": os.environ.get("AA_DB_PASSWORD"),
     "HOST": os.environ.get("AA_DB_HOST"),
     "PORT": os.environ.get("AA_DB_PORT", "3306"),
-    "OPTIONS": {
-        "charset": os.environ.get("AA_DB_CHARSET", "utf8mb4")
-    }
+    "OPTIONS": {"charset": os.environ.get("AA_DB_CHARSET", "utf8mb4")},
 }
 
 # Register an application at https://developers.eveonline.com for Authentication
@@ -71,7 +69,6 @@ INSTALLED_APPS += [
     # 'allianceauth.permissions_tool',
     # 'allianceauth.srp',
     # 'allianceauth.timerboard',
-
     # https://allianceauth.readthedocs.io/en/latest/features/services/index.html
     # 'allianceauth.services.modules.discord',
     # 'allianceauth.services.modules.discourse',
@@ -84,8 +81,9 @@ INSTALLED_APPS += [
     # 'allianceauth.services.modules.smf',
     # 'allianceauth.services.modules.teamspeak3',
     # 'allianceauth.services.modules.xenforo',
-
-    'outfit418_backup_ratting',
+    "outfit418_backup_ratting",
+    "allianceauth_pve",
+    'corptools',
 ]
 
 #######################################
