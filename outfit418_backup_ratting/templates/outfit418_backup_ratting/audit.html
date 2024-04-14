@@ -1,10 +1,13 @@
 {% extends 'allianceauth/base-bs5.html' %}
 {% load outfit_tags %}
+{% load static %}
 
 {% block page_title %}418 Audit{% endblock page_title %}
 
 {% block extra_css %}
     {% include "bundles/datatables-css-bs5.html" %}
+    <link rel="stylesheet" type="text/css" href="{% static 'allianceauth_pve/css/spop.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% allianceauth_pve_static 'allianceauth_pve/css/copy_text.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -19,10 +22,10 @@
             <tbody>
                 {% for main in mains %}
                     <tr>
-                        <td>{{ main.character.character_name }}</td>
+                        <td><span class="copy-text">{{ main.character.character_name }}</span></td>
                         <td>
                             {% for char in main.character.character_ownership.user.chars %}
-                                <span class="badge {% if char.character|ct_is_active %}text-bg-primary{% else %}text-bg-danger{% endif %}">{{ char.character.character_name }}</span>
+                                <span class="badge {% if char.character|ct_is_active %}text-bg-primary{% else %}text-bg-danger{% endif %} copy-text">{{ char.character.character_name }}</span>
                             {% endfor %}
                         </td>
                     </tr>
@@ -34,6 +37,8 @@
 
 {% block extra_javascript %}
     {% include "bundles/datatables-js-bs5.html" %}
+    <script src="{% static 'allianceauth_pve/js/spop.js' %}"></script>
+    <script src="{% static 'allianceauth_pve/js/copy_text.js' %}"></script>
 {% endblock extra_javascript %}
 
 {% block extra_script %}
