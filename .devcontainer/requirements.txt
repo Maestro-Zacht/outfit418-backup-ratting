@@ -1,4 +1,9 @@
 ipython
 bpython
+tox
+coverage
+django-debug-toolbar
+aa-taskmonitor
+
 allianceauth_pve
 allianceauth-corptools

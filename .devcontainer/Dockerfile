@@ -1,11 +1,15 @@
 ARG AA_DOCKER_TAG
 FROM $AA_DOCKER_TAG
 
+USER root
+RUN apt-get update && apt-get install make -y
+USER ${AUTH_USER}
+
 RUN cd /home/allianceauth
 COPY .devcontainer/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY . /workspace
-RUN ln -s /workspace/outfit418_backup_ratting myauth/outfit418_backup_ratting
+RUN pip install -e /workspace
 
 RUN allianceauth update myauth

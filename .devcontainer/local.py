@@ -84,8 +84,13 @@ INSTALLED_APPS += [
     "outfit418_backup_ratting",
     "allianceauth_pve",
     'corptools',
+
+    "debug_toolbar",
+    'taskmonitor',
 ]
 
 #######################################
 # Add any custom settings below here. #
 #######################################
+
+MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
