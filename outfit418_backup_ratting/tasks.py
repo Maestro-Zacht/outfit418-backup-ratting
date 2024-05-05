@@ -1,14 +1,20 @@
-from celery import shared_task
+from celery import shared_task, group
+from celery_once import QueueOnce
 
 from django.db import transaction
+from django.utils import timezone
 
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth.authentication.models import CharacterOwnership
 
 from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
+from corptools.models import CharacterAudit
+from corptools.task_helpers.char_tasks import get_token
+
 from .utils import get_or_create_char, get_user_or_fake, get_default_user
-from .models import EntryCreator, ShareUser
+from .models import EntryCreator, ShareUser, CharacterAuditLoginData
+from .provider import esi
 
 
 logger = get_extension_logger(__name__)
@@ -109,3 +115,35 @@ def update_fake_users():
             entry_qs = EntryCreator.objects.filter(creator_character=ownership.character)
             Entry.objects.filter(pk__in=entry_qs.values('entry_id')).update(created_by=ownership.user)
             entry_qs.delete()
+
+
+@shared_task(base=QueueOnce, once={'keys': ['pk'], 'graceful': True})
+def update_character_login(pk, force_refresh=False):
+    char = CharacterAudit.objects.get(pk=pk)
+    login_data = CharacterAuditLoginData.objects.get_or_create(characteraudit=char)[0]
+
+    if force_refresh or login_data.last_update is None or login_data.last_update < timezone.now() - timezone.timedelta(hours=1):
+        token = get_token(char.character.character_id, ['esi-location.read_online.v1'])
+        if token:
+            result = (
+                esi.client
+                .Location
+                .get_characters_character_id_online(
+                    character_id=char.character.character_id,
+                    token=token.valid_access_token()
+                )
+                .results()
+            )
+            if result['online']:
+                login_data.last_login = timezone.now()
+                login_data.last_update = timezone.now()
+            elif 'last_login' in result:
+                login_data.last_login = result['last_login']
+                login_data.last_update = timezone.now()
+            login_data.save()
+
+
+@shared_task
+def update_all_characters_logins(force_refresh=False):
+    pks = CharacterAudit.objects.values_list('pk', flat=True)
+    group(update_character_login.s(pk=pk) for pk in pks).delay(force_refresh=force_refresh)
