@@ -46,9 +46,9 @@
 
 {% block extra_script %}
     $(document).ready(function() {
+        $('[data-bs-toggle="tooltip"]').tooltip();
         $('.table').DataTable({
             "pageLength": 50
         });
-        $('[data-bs-toggle="tooltip"]').tooltip();
     });
 {% endblock extra_script %}
