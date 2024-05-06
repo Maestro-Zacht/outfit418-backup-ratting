@@ -29,7 +29,7 @@
                             {% endfor %}
                         </td>
                         <td>
-                            <span class="badge {% if main.is_updating %}text-bg-primary{% else %}text-bg-danger{% endif %}" data-bs-toggle="tooltip" data-bs-title="Older update between all chars: {{ main.older_last_update|date:"Y/m/d H:i" }}">{{ main.last_login|date:"Y/m/d H:i" }}</span>
+                            <span class="badge {% if main.is_updating %}text-bg-primary{% else %}text-bg-danger{% endif %}" data-bs-toggle="tooltip" data-bs-title="Older update between all chars: {% if main.older_last_update %}{{ main.older_last_update|date:"Y/m/d H:i" }}{% else %}Never{% endif %}">{{ main.last_login|date:"Y/m/d H:i" }}</span>
                         </td>
                     </tr>
                 {% endfor %}

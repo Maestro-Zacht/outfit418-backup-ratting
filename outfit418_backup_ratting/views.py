@@ -3,7 +3,7 @@ import pickle
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required, permission_required
 from django.shortcuts import render, redirect
-from django.db.models import F, Prefetch, Max, Subquery, OuterRef, Case, When, Min
+from django.db.models import F, Prefetch, Max, Subquery, OuterRef, Case, When, Min, Exists
 from django.db.models.lookups import LessThan
 from django.utils import timezone
 
@@ -103,6 +103,13 @@ def audit(request):
                             .values('last_update')
                         ),
                         timezone.now() - timezone.timedelta(days=1),
+                    ) |
+                    Exists(
+                        CharacterAuditLoginData.objects
+                        .filter(
+                            characteraudit__character__character_ownership__user=OuterRef('character__character_ownership__user'),
+                            last_update__isnull=True
+                        )
                     ),
                     then=False
                 ),
@@ -110,10 +117,22 @@ def audit(request):
             )
         )
         .annotate(
-            older_last_update=Subquery(
-                user_login_qs
-                .annotate(last_update=Min('last_update'))
-                .values('last_update')
+            older_last_update=Case(
+                When(
+                    Exists(
+                        CharacterAuditLoginData.objects
+                        .filter(
+                            characteraudit__character__character_ownership__user=OuterRef('character__character_ownership__user'),
+                            last_update__isnull=True
+                        )
+                    ),
+                    then=None
+                ),
+                default=Subquery(
+                    user_login_qs
+                    .annotate(last_update=Min('last_update'))
+                    .values('last_update')
+                )
             )
         )
     )
