@@ -3,7 +3,9 @@ import pickle
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required, permission_required
 from django.shortcuts import render, redirect
-from django.db.models import F, Prefetch, Exists, OuterRef
+from django.db.models import F, Prefetch, Max, Subquery, OuterRef, Case, When, Min
+from django.db.models.lookups import LessThan
+from django.utils import timezone
 
 from celery import group
 
@@ -14,6 +16,7 @@ from corptools.models import CharacterAudit
 
 from .forms import BackupForm
 from .tasks import save_import, fetch_char
+from .models import CharacterAuditLoginData
 
 logger = get_extension_logger(__name__)
 
@@ -50,7 +53,24 @@ def dashboard(request):
 @permission_required('outfit418_backup_ratting.audit_corp')
 def audit(request):
     corp_id = request.user.profile.main_character.corporation_id
-    ownership_qs = CharacterOwnership.objects.select_related('character__characteraudit')
+    ownership_qs = (
+        CharacterOwnership.objects
+        .select_related('character__characteraudit')
+        .annotate(
+            last_login=Subquery(
+                CharacterAuditLoginData.objects
+                .filter(characteraudit__character=OuterRef('character'))
+                .values('last_login')
+            )
+        )
+    )
+    user_login_qs = (
+        CharacterAuditLoginData.objects
+        .filter(
+            characteraudit__character__character_ownership__user=OuterRef('character__character_ownership__user')
+        )
+        .values('characteraudit__character__character_ownership__user')
+    )
 
     mains = (
         CharacterAudit.objects
@@ -65,6 +85,36 @@ def audit(request):
                 queryset=ownership_qs,
                 to_attr='chars',
             ),
+        )
+        .annotate(
+            last_login=Subquery(
+                user_login_qs
+                .annotate(last_login=Max('last_login'))
+                .values('last_login')
+            )
+        )
+        .annotate(
+            is_updating=Case(
+                When(
+                    LessThan(
+                        Subquery(
+                            user_login_qs
+                            .annotate(last_update=Min('last_update'))
+                            .values('last_update')
+                        ),
+                        timezone.now() - timezone.timedelta(days=1),
+                    ),
+                    then=False
+                ),
+                default=True,
+            )
+        )
+        .annotate(
+            older_last_update=Subquery(
+                user_login_qs
+                .annotate(last_update=Min('last_update'))
+                .values('last_update')
+            )
         )
     )
 

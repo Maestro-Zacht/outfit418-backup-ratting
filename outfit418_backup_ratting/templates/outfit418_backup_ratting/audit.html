@@ -1,12 +1,11 @@
 {% extends 'allianceauth/base-bs5.html' %}
 {% load outfit_tags %}
-{% load static %}
 
 {% block page_title %}418 Audit{% endblock page_title %}
 
 {% block extra_css %}
     {% include "bundles/datatables-css-bs5.html" %}
-    <link rel="stylesheet" type="text/css" href="{% static 'allianceauth_pve/css/spop.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% allianceauth_pve_static 'allianceauth_pve/css/spop.css' %}">
     <link rel="stylesheet" type="text/css" href="{% allianceauth_pve_static 'allianceauth_pve/css/copy_text.css' %}">
 {% endblock %}
 
@@ -17,6 +16,7 @@
                 <tr>
                     <th>Main</th>
                     <th>Characters</th>
+                    <th>Last login (ET)</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,8 +25,11 @@
                         <td><span class="copy-text">{{ main.character.character_name }}</span></td>
                         <td>
                             {% for char in main.character.character_ownership.user.chars %}
-                                <span class="badge {% if char.character|ct_is_active %}text-bg-primary{% else %}text-bg-danger{% endif %} copy-text">{{ char.character.character_name }}</span>
+                                <span class="badge {% if char.character|ct_is_active %}text-bg-primary{% else %}text-bg-danger{% endif %} copy-text" data-bs-toggle="tooltip" data-bs-title="Last login (ET): {{ char.last_login }}">{{ char.character.character_name }}</span>
                             {% endfor %}
+                        </td>
+                        <td>
+                            <span class="badge {% if main.is_updating %}text-bg-primary{% else %}text-bg-danger{% endif %}" data-bs-toggle="tooltip" data-bs-title="Older update between all chars: {{ main.older_last_update }}">{{ main.last_login }}</span>
                         </td>
                     </tr>
                 {% endfor %}
@@ -37,8 +40,8 @@
 
 {% block extra_javascript %}
     {% include "bundles/datatables-js-bs5.html" %}
-    <script src="{% static 'allianceauth_pve/js/spop.js' %}"></script>
-    <script src="{% static 'allianceauth_pve/js/copy_text.js' %}"></script>
+    <script src="{% allianceauth_pve_static 'allianceauth_pve/js/spop.js' %}"></script>
+    <script src="{% allianceauth_pve_static 'allianceauth_pve/js/copy_text.js' %}"></script>
 {% endblock extra_javascript %}
 
 {% block extra_script %}
@@ -46,5 +49,6 @@
         $('.table').DataTable({
             "pageLength": 50
         });
+        $('[data-bs-toggle="tooltip"]').tooltip();
     });
 {% endblock extra_script %}
