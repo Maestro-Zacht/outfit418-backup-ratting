@@ -1,4 +1,5 @@
 import pickle
+from collections import defaultdict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test, login_required, permission_required
@@ -11,12 +12,15 @@ from celery import group
 
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth.authentication.models import CharacterOwnership
+from allianceauth.eveonline.models import EveCharacter
 
-from corptools.models import CharacterAudit
+from corptools.models import CharacterAudit, CharacterAsset
+from corptools.task_helpers.char_tasks import get_token
 
 from .forms import BackupForm
 from .tasks import save_import, fetch_char
 from .models import CharacterAuditLoginData
+from .utils import get_ship_name
 
 logger = get_extension_logger(__name__)
 
@@ -138,3 +142,29 @@ def audit(request):
     )
 
     return render(request, 'outfit418_backup_ratting/audit.html', context={'mains': mains})
+
+
+@login_required
+@permission_required('outfit418_backup_ratting.find_jeremy')
+def find_jeremy(request):
+    thannys = CharacterAsset.objects.filter(type_name_id=23911).select_related('character__character')
+    thanny_dict = defaultdict(list)
+    jeremy_owners = defaultdict(list)
+
+    for thanny in thannys:
+        thanny_dict[thanny.character.character].append(thanny.item_id)
+
+    for char, item_ids in thanny_dict.items():
+        token = get_token(char.character_id)
+        if token:
+            names = get_ship_name(token, item_ids)
+            for name in names:
+                if 'jeremy' in name.lower():
+                    jeremy_owners[char].append(name)
+                    break
+
+    context = {
+        'jeremy_owners': jeremy_owners,
+    }
+
+    return render(request, 'outfit418_backup_ratting/find_jeremy.html', context)

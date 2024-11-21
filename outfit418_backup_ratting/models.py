@@ -13,6 +13,7 @@ class General(models.Model):
         default_permissions = ()
         permissions = (
             ('audit_corp', "Can audit corp members' alts"),
+            ('find_jeremy', "Can find Jeremy"),
         )
 
 

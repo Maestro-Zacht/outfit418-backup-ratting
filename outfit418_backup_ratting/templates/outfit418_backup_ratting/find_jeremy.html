@@ -1,0 +1,44 @@
+{% extends 'allianceauth/base-bs5.html' %}
+
+{% block page_title %}Find Jeremy{% endblock page_title %}
+
+{% block extra_css %}
+    {% include "bundles/datatables-css-bs5.html" %}
+{% endblock %}
+
+{% block content %}
+    <div class="col-lg-12" style="padding: 10px 10px 10px 10px">
+        <table class="table table-aa">
+            <thead>
+                <tr>
+                    <th>Character</th>
+                    <th>Ships</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for char, names in jeremy_owners.items %}
+                    <tr>
+                        <td>{{ char.character_name }}</td>
+                        <td>
+                            {% for name in names %}
+                                <span>{{ name }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+
+{% block extra_javascript %}
+    {% include "bundles/datatables-js-bs5.html" %}
+{% endblock extra_javascript %}
+
+{% block extra_script %}
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "pageLength": 50
+        });
+    });
+{% endblock extra_script %}
