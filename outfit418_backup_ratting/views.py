@@ -155,7 +155,7 @@ def find_jeremy(request):
         thanny_dict[thanny.character.character].append(thanny.item_id)
 
     for char, item_ids in thanny_dict.items():
-        token = get_token(char.character_id)
+        token = get_token(char.character_id, ['esi-assets.read_assets.v1'])
         if token:
             names = get_ship_name(token, item_ids)
             for name in names:
