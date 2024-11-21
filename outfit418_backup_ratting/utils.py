@@ -1,7 +1,11 @@
 from django.contrib.auth.models import User
 
+from esi.models import Token
+
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.authentication.models import CharacterOwnership
+
+from .provider import esi
 
 
 def get_or_create_char(character_id: int) -> EveCharacter:
@@ -28,3 +32,12 @@ def get_user_or_fake(character_id) -> User:
         return ownership.user
     except CharacterOwnership.DoesNotExist:
         return get_default_user()
+
+
+def get_ship_name(token: Token, item_ids: list[int]) -> list[str]:
+    res = esi.client.Assets.post_characters_character_id_assets_names(
+        character_id=token.character_id,
+        item_ids=item_ids,
+        token=token.valid_access_token()
+    ).results()
+    return [r['name'] for r in res]
