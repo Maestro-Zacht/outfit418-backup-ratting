@@ -161,7 +161,8 @@ def find_jeremy(request):
             for name in names:
                 if 'jeremy' in name.lower():
                     jeremy_owners[char].append(name)
-                    logger.info(f'{char} has a Jeremy: {name}')
+
+    logger.info(f"Jeremy owners: {jeremy_owners}")
 
     context = {
         'jeremy_owners': jeremy_owners,
