@@ -162,10 +162,8 @@ def find_jeremy(request):
                 if 'jeremy' in name.lower():
                     jeremy_owners[char].append(name)
 
-    logger.info(f"Jeremy owners: {jeremy_owners}")
-
     context = {
-        'jeremy_owners': jeremy_owners,
+        'jeremy_owners': dict(jeremy_owners),
     }
 
     return render(request, 'outfit418_backup_ratting/find_jeremy.html', context=context)
