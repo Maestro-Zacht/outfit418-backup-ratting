@@ -9,7 +9,7 @@ logger = get_extension_logger(__name__)
 
 class Outfit418BackupRattingItemHook(MenuItemHook):
     def __init__(self):
-        super().__init__("Outfit418 Backup Ratting", "fas fa-wallet", "outfit418backup:index", navactive=['outfit418backup:'])
+        super().__init__("Outfit418 Backup Ratting", "fas fa-wallet", "outfit418backup:index", navactive=['outfit418backup:index', 'outfit418backup:dashboard'])
 
     def render(self, request):
         if request.user.is_superuser:
@@ -19,7 +19,7 @@ class Outfit418BackupRattingItemHook(MenuItemHook):
 
 class Outfit418AuditHook(MenuItemHook):
     def __init__(self):
-        super().__init__("418 Audit", "fas fa-search", "outfit418backup:audit", navactive=['outfit418backup:'])
+        super().__init__("418 Audit", "fas fa-search", "outfit418backup:audit", navactive=['outfit418backup:audit'])
 
     def render(self, request):
         if request.user.has_perm('outfit418_backup_ratting.audit_corp'):
