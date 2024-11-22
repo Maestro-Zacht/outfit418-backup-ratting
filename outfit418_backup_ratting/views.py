@@ -20,7 +20,7 @@ from corptools.task_helpers.char_tasks import get_token
 from .forms import BackupForm
 from .tasks import save_import, fetch_char
 from .models import CharacterAuditLoginData
-from .utils import get_ship_name
+from .utils import get_ship_names
 
 logger = get_extension_logger(__name__)
 
@@ -157,7 +157,7 @@ def find_jeremy(request):
     for char, item_ids in thanny_dict.items():
         token = get_token(char.character_id, ['esi-assets.read_assets.v1'])
         if token:
-            names = get_ship_name(token, item_ids)
+            names = get_ship_names(token, item_ids)
             for name in names:
                 if 'jeremy' in name.lower():
                     jeremy_owners[char].append(name)

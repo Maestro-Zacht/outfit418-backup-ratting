@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 
 from esi.models import Token
 
@@ -6,6 +7,9 @@ from allianceauth.eveonline.models import EveCharacter
 from allianceauth.authentication.models import CharacterOwnership
 
 from .provider import esi
+
+
+SHIP_NAME_TIMEOUT = 60 * 60  # 1 hour
 
 
 def get_or_create_char(character_id: int) -> EveCharacter:
@@ -34,13 +38,28 @@ def get_user_or_fake(character_id) -> User:
         return get_default_user()
 
 
-def get_ship_name(token: Token, item_ids: list[int]) -> list[str]:
-    try:
-        res = esi.client.Assets.post_characters_character_id_assets_names(
-            character_id=token.character_id,
-            item_ids=item_ids,
-            token=token.valid_access_token()
-        ).results()
-        return [r['name'] for r in res]
-    except:
-        return []
+def get_ship_names(token: Token, item_ids: list[int]) -> list[str]:
+    download = []
+    result = []
+    for item_id in item_ids:
+        cached = cache.get(f'ship_name_{token.character_id}-{item_id}')
+        if cached:
+            result.append(cached)
+        else:
+            download.append(item_id)
+
+    if len(download) != 0:
+        try:
+            res = esi.client.Assets.post_characters_character_id_assets_names(
+                character_id=token.character_id,
+                item_ids=download,
+                token=token.valid_access_token()
+            ).results()
+
+            for r in res:
+                cache.set(f'ship_name_{token.character_id}-{r["item_id"]}', r["name"], SHIP_NAME_TIMEOUT)
+                result.append(r["name"])
+        except:
+            pass
+
+    return result
