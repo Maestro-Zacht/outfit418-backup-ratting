@@ -84,6 +84,7 @@ INSTALLED_APPS += [
     "outfit418_backup_ratting",
     "allianceauth_pve",
     'corptools',
+    'opcalendar',
 
     "debug_toolbar",
     'taskmonitor',

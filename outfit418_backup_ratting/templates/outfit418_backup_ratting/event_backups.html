@@ -1,0 +1,45 @@
+{% extends 'allianceauth/base-bs5.html' %}
+
+
+{% block extra_css %}
+    {% include "bundles/datatables-css-bs5.html" %}
+{% endblock %}
+
+{% block content %}
+    <div class="col-lg-12" style="padding: 10px 10px 10px 10px">
+        <table class="table table-aa">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Start</th>
+                    <th>User</th>
+                    <th>Deleted On</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event_backup in events %}
+                    <tr>
+                        <td>{{ event_backup.title }}</td>
+                        <td>{{ event_backup.start_time }}</td>
+                        <td>{{ event_backup.user }}</td>
+                        <td>{{ event_backup.deleted_on }}</td>
+                        <td><a href="{% url "outfit418backup:restore_event" event_backup.pk %}" class="btn btn-success">Restore</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+
+{% block extra_javascript %}
+    {% include "bundles/datatables-js-bs5.html" %}
+{% endblock extra_javascript %}
+
+{% block extra_script %}
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "pageLength": 50
+        });
+    });
+{% endblock extra_script %}

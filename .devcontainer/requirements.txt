@@ -7,3 +7,5 @@ aa-taskmonitor
 
 allianceauth_pve
 allianceauth-corptools
+
+git+https://github.com/leesolway/aa-opcalendar.git

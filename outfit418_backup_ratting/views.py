@@ -19,7 +19,7 @@ from corptools.task_helpers.char_tasks import get_token
 
 from .forms import BackupForm
 from .tasks import save_import, fetch_char
-from .models import CharacterAuditLoginData
+from .models import CharacterAuditLoginData, EventBackup
 from .utils import get_ship_names
 
 logger = get_extension_logger(__name__)
@@ -167,3 +167,22 @@ def find_jeremy(request):
     }
 
     return render(request, 'outfit418_backup_ratting/find_jeremy.html', context=context)
+
+
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def event_backup(request):
+    events = EventBackup.objects.all()
+    context = {
+        'events': events,
+    }
+    return render(request, 'outfit418_backup_ratting/event_backups.html', context=context)
+
+
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def restore_event(request, event_id):
+    event = EventBackup.objects.get(pk=event_id)
+    restored = event.restore_event()
+    messages.success(request, f'Event {event.title} restored!')
+    return redirect('opcalendar:event-detail', restored.pk)
