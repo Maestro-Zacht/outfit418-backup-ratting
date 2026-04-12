@@ -1,12 +1,13 @@
 {% extends 'allianceauth/base-bs5.html' %}
 {% load outfit_tags %}
+{% load outfit418_versioned_static %}
 
 {% block page_title %}418 Audit{% endblock page_title %}
 
 {% block extra_css %}
     {% include "bundles/datatables-css-bs5.html" %}
-    <link rel="stylesheet" type="text/css" href="{% allianceauth_pve_static 'allianceauth_pve/css/spop.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% allianceauth_pve_static 'allianceauth_pve/css/copy_text.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% outfit418_static 'outfit418_backup_ratting/css/spop.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% outfit418_static 'outfit418_backup_ratting/css/copy_text.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -40,8 +41,8 @@
 
 {% block extra_javascript %}
     {% include "bundles/datatables-js-bs5.html" %}
-    <script src="{% allianceauth_pve_static 'allianceauth_pve/js/spop.js' %}"></script>
-    <script src="{% allianceauth_pve_static 'allianceauth_pve/js/copy_text.js' %}"></script>
+    <script src="{% outfit418_static 'outfit418_backup_ratting/js/spop.js' %}"></script>
+    <script src="{% outfit418_static 'outfit418_backup_ratting/js/copy_text.js' %}"></script>
 {% endblock extra_javascript %}
 
 {% block extra_script %}
