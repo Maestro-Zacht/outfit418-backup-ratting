@@ -50,10 +50,10 @@ def get_ship_names(token: Token, item_ids: list[int]) -> list[str]:
 
     if len(download) != 0:
         try:
-            res = esi.client.Assets.post_characters_character_id_assets_names(
+            res = esi.client.Assets.PostCharactersCharacterIdAssetsNames(
                 character_id=token.character_id,
                 item_ids=download,
-                token=token.valid_access_token()
+                token=token
             ).results()
 
             for r in res:

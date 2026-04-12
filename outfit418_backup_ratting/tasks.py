@@ -130,9 +130,9 @@ def update_character_login(pk, force_refresh=False):
             result = (
                 esi.client
                 .Location
-                .get_characters_character_id_online(
+                .GetCharactersCharacterIdOnline(
                     character_id=char.character.character_id,
-                    token=token.valid_access_token()
+                    token=token
                 )
                 .results()
             )
