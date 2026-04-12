@@ -11,6 +11,8 @@ from allianceauth.authentication.models import CharacterOwnership
 
 from allianceauth_pve.models import Rotation, Entry, EntryCharacter
 
+from esi.exceptions import HTTPNotModified
+
 from corptools.models import CharacterAudit, CharacterAsset
 from corptools.task_helpers.char_tasks import get_token
 
@@ -127,22 +129,26 @@ def update_character_login(pk, force_refresh=False):
     if force_refresh or login_data.last_update is None or login_data.last_update < timezone.now() - timezone.timedelta(hours=1):
         token = get_token(char.character.character_id, ['esi-location.read_online.v1'])
         if token:
-            result = (
-                esi.client
-                .Location
-                .GetCharactersCharacterIdOnline(
-                    character_id=char.character.character_id,
-                    token=token
+            try:
+                result = (
+                    esi.client
+                    .Location
+                    .GetCharactersCharacterIdOnline(
+                        character_id=char.character.character_id,
+                        token=token
+                    )
+                    .results()
                 )
-                .results()
-            )
-            if result['online']:
-                login_data.last_login = timezone.now()
-                login_data.last_update = timezone.now()
-            elif 'last_login' in result:
-                login_data.last_login = result['last_login']
-                login_data.last_update = timezone.now()
-            login_data.save()
+            except HTTPNotModified:
+                pass
+            else:
+                if result['online']:
+                    login_data.last_login = timezone.now()
+                    login_data.last_update = timezone.now()
+                elif 'last_login' in result:
+                    login_data.last_login = result['last_login']
+                    login_data.last_update = timezone.now()
+                login_data.save()
 
 
 @shared_task
