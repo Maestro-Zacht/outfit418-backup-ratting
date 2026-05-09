@@ -21,7 +21,7 @@ requires-python = "~=3.8"
 dependencies = [
     "allianceauth~=4.0",
 	"allianceauth_pve>=1.10,<3",
-	"allianceauth-corptools~=2.15",
+	"allianceauth-corptools>=2.15,<4",
 ]
 
 [project.urls]
