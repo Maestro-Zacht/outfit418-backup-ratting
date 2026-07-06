@@ -2,7 +2,7 @@ from esi.openapi_clients import ESIClientProvider
 
 from . import __version__
 
-esi_compatibility_date = "2025-12-16"
+esi_compatibility_date = "2026-06-09"
 github_url = "https://github.com/Maestro-Zacht/outfit418-backup-ratting"
 app_name = "outfit418-backup-ratting"
 
@@ -14,5 +14,6 @@ esi = ESIClientProvider(
     operations=[
         "PostCharactersCharacterIdAssetsNames",
         "GetCharactersCharacterIdOnline",
-    ]
+        "GetCharactersCharacterIdLocation",
+    ],
 )

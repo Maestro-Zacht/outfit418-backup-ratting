@@ -1,14 +1,21 @@
-from django.db import models
-from django.utils import timezone
-from django.contrib.auth.models import User
-
-from allianceauth_pve.models import Entry, EntryCharacter
+from datetime import datetime
+from datetime import timezone as dt_timezone
+from typing import TYPE_CHECKING
 
 from allianceauth.eveonline.models import EveCharacter
-
+from allianceauth_pve.models import Entry, EntryCharacter
 from corptools.models import CharacterAudit
-
-from opcalendar.models import EventVisibility, EventCategory, EventHost, Event, EventMember
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
+from eve_sde.models import SolarSystem
+from opcalendar.models import (
+    Event,
+    EventCategory,
+    EventHost,
+    EventMember,
+    EventVisibility,
+)
 
 
 class General(models.Model):
@@ -16,25 +23,82 @@ class General(models.Model):
         managed = False
         default_permissions = ()
         permissions = (
-            ('audit_corp', "Can audit corp members' alts"),
-            ('find_jeremy', "Can find Jeremy"),
+            ("audit_corp", "Can audit corp members' alts"),
+            ("find_jeremy", "Can find Jeremy"),
         )
 
 
 class EntryCreator(models.Model):
-    entry = models.OneToOneField(Entry, on_delete=models.CASCADE, related_name='+')
-    creator_character = models.ForeignKey(EveCharacter, on_delete=models.RESTRICT, related_name='+')
+    entry = models.OneToOneField(Entry, on_delete=models.CASCADE, related_name="+")
+    creator_character = models.ForeignKey(
+        EveCharacter, on_delete=models.RESTRICT, related_name="+"
+    )
 
 
 class ShareUser(models.Model):
-    share = models.OneToOneField(EntryCharacter, on_delete=models.CASCADE, related_name='+')
-    character = models.ForeignKey(EveCharacter, on_delete=models.RESTRICT, related_name='+')
+    share = models.OneToOneField(
+        EntryCharacter, on_delete=models.CASCADE, related_name="+"
+    )
+    character = models.ForeignKey(
+        EveCharacter, on_delete=models.RESTRICT, related_name="+"
+    )
 
 
 class CharacterAuditLoginData(models.Model):
-    characteraudit = models.OneToOneField(CharacterAudit, on_delete=models.CASCADE, related_name='+')
+    characteraudit = models.OneToOneField(
+        CharacterAudit, on_delete=models.CASCADE, related_name="+"
+    )
+
     last_login = models.DateTimeField(null=True, blank=True)
+    last_logout = models.DateTimeField(null=True, blank=True)
+    is_online = models.BooleanField(default=False)
+
     last_update = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    if TYPE_CHECKING:
+        member_activity: "MemberActivity"
+
+    def set_last_modified_from_header(self, last_modified_header: str):
+        self.last_modified = datetime.strptime(
+            last_modified_header,
+            "%a, %d %b %Y %H:%M:%S GMT",
+        ).replace(tzinfo=dt_timezone.utc)
+
+
+class MemberActivity(models.Model):
+    login_data = models.OneToOneField(
+        CharacterAuditLoginData,
+        on_delete=models.CASCADE,
+        related_name="member_activity",
+    )
+
+    last_modified = models.DateTimeField(null=True, blank=True)
+    last_updated = models.DateTimeField(null=True, blank=True)
+
+    def set_last_modified_from_header(self, last_modified_header: str):
+        self.last_modified = datetime.strptime(
+            last_modified_header,
+            "%a, %d %b %Y %H:%M:%S GMT",
+        ).replace(tzinfo=dt_timezone.utc)
+
+
+class MemberActivityLocation(models.Model):
+    member_activity = models.ForeignKey(
+        MemberActivity,
+        on_delete=models.CASCADE,
+        related_name="locations",
+    )
+    system = models.ForeignKey(
+        SolarSystem,
+        on_delete=models.RESTRICT,
+        related_name="+",
+    )
+
+    is_online = models.BooleanField()
+
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)
 
 
 class EventBackup(models.Model):
@@ -68,12 +132,9 @@ class EventBackup(models.Model):
     formup_system = models.CharField(
         max_length=254,
     )
-    description = models.TextField(
-    )
-    start_time = models.DateTimeField(
-    )
-    end_time = models.DateTimeField(
-    )
+    description = models.TextField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     repeat_event = models.CharField(
         max_length=32,
         default=False,

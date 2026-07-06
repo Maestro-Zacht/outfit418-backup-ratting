@@ -17,7 +17,7 @@ keywords = [
 	"outfit418",
 	"eveonline",
 ]
-requires-python = "~=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "allianceauth>=4.0,<6",
 	"allianceauth_pve>=1.10,<3",
