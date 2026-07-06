@@ -29,6 +29,9 @@ from .utils import (
 logger = get_extension_logger(__name__)
 
 
+UPDATE_CHARACTER_LOGIN_PRIORITY = 6
+
+
 @shared_task
 def fetch_char(char_id):
     if char_id != 1:
@@ -126,7 +129,7 @@ def update_fake_users():
 
 
 @shared_task(base=QueueOnce, once={"keys": ["pk"], "graceful": True})
-def update_character_login(pk, force_refresh=False):
+def update_character_login(pk, force_refresh=False):  # noqa: FBT002
     char: CharacterAudit = CharacterAudit.objects.select_related("character").get(pk=pk)
     login_data = CharacterAuditLoginData.objects.get_or_create(characteraudit=char)[0]
 
@@ -163,15 +166,15 @@ def update_character_login(pk, force_refresh=False):
 
 
 @shared_task
-def update_all_characters_logins(force_refresh=False):
+def update_all_characters_logins(force_refresh=False):  # noqa: FBT002
     pks = CharacterAudit.objects.values_list("pk", flat=True)
-    group(update_character_login.s(pk=pk) for pk in pks).delay(
-        force_refresh=force_refresh
-    )
+    group(update_character_login.s(pk=pk) for pk in pks).set(
+        priority=UPDATE_CHARACTER_LOGIN_PRIORITY
+    ).delay(force_refresh=force_refresh)
 
 
 @shared_task(base=QueueOnce, once={"keys": ["pk"], "graceful": True})
-def update_character_location(pk, force_refresh=False):
+def update_character_location(pk, force_refresh=False):  # noqa: FBT002
     char: CharacterAudit = CharacterAudit.objects.select_related("character").get(pk=pk)
     login_data = CharacterAuditLoginData.objects.get(characteraudit=char)
     member_activity = MemberActivity.objects.get_or_create(login_data=login_data)[0]
