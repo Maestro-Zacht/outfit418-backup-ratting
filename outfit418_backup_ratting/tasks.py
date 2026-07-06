@@ -164,11 +164,10 @@ def update_character_login(pk, force_refresh=False):
 
 @shared_task
 def update_all_characters_logins(force_refresh=False):
-    pks: list[int] = list(CharacterAudit.objects.values_list("pk", flat=True))
-    group(
-        update_character_login.s(pk=pk).set(countdown=int(60 * (i / len(pks))))
-        for i, pk in enumerate(pks)
-    ).delay(force_refresh=force_refresh)
+    pks = CharacterAudit.objects.values_list("pk", flat=True)
+    group(update_character_login.s(pk=pk) for pk in pks).delay(
+        force_refresh=force_refresh
+    )
 
 
 @shared_task(base=QueueOnce, once={"keys": ["pk"], "graceful": True})
