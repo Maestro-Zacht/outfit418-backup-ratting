@@ -16,6 +16,42 @@ $(document).ready(function () {
 
     const fmtUtc = (v) => moment.utc(v).format('YYYY-MM-DD HH:mm');
 
+    const LABEL_PADDING = 6;
+
+    const segmentLabelsPlugin = {
+        id: 'segmentLabels',
+        afterDatasetsDraw(chart) {
+            const ctx = chart.ctx;
+            const meta = chart.getDatasetMeta(0);
+            const data = chart.data.datasets[0].data;
+            ctx.save();
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fff';
+            meta.data.forEach((bar, i) => {
+                const raw = data[i];
+                if (!raw || !raw.system) {
+                    return;
+                }
+                const { x, y, base } = bar.getProps(['x', 'y', 'base'], false);
+                const maxWidth = Math.abs(x - base) - LABEL_PADDING;
+                let label = raw.system;
+                if (ctx.measureText(label).width > maxWidth) {
+                    while (label.length > 2 && ctx.measureText(label + '…').width > maxWidth) {
+                        label = label.slice(0, -1);
+                    }
+                    if (label.length <= 2) {
+                        return;
+                    }
+                    label += '…';
+                }
+                ctx.fillText(label, (x + base) / 2, y);
+            });
+            ctx.restore();
+        },
+    };
+
     const chart = new Chart(document.getElementById('member-activity-chart'), {
         type: 'bar',
         data: {
@@ -29,6 +65,7 @@ $(document).ready(function () {
                 minBarLength: 3,
             }],
         },
+        plugins: [segmentLabelsPlugin],
         options: {
             indexAxis: 'y',
             responsive: true,
