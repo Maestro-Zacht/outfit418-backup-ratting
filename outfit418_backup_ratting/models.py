@@ -97,6 +97,7 @@ class MemberActivityLocation(models.Model):
     )
 
     is_online = models.BooleanField()
+    is_docked = models.BooleanField()
 
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)

@@ -132,62 +132,51 @@ def update_fake_users():
 def update_character_login(pk, force_refresh=False):  # noqa: FBT002
     char: CharacterAudit = CharacterAudit.objects.select_related("character").get(pk=pk)
     login_data = CharacterAuditLoginData.objects.get_or_create(characteraudit=char)[0]
+    member_activity = MemberActivity.objects.get_or_create(login_data=login_data)[0]
 
-    token = get_token(char.character.character_id, ["esi-location.read_online.v1"])
+    token = get_token(
+        char.character.character_id,
+        ["esi-location.read_online.v1", "esi-location.read_location.v1"],
+    )
     if token:
         try:
-            result, response = esi.client.Location.GetCharactersCharacterIdOnline(
-                character_id=char.character.character_id, token=token
-            ).result(
-                last_modified=login_data.last_modified,
-                force_refresh=force_refresh,
-                return_response=True,
+            result_online, response_online = (
+                esi.client.Location.GetCharactersCharacterIdOnline(
+                    character_id=char.character.character_id, token=token
+                ).result(
+                    last_modified=login_data.last_modified,
+                    force_refresh=force_refresh,
+                    return_response=True,
+                )
             )
         except HTTPNotModified as e:
             login_data.set_last_modified_from_header(e.headers.get("Last-Modified"))
             login_data.last_update = timezone.now()
             login_data.save()
         else:
-            login_data.is_online = result.online
-            login_data.last_logout = result.last_logout
+            login_data.is_online = result_online.online
+            login_data.last_logout = result_online.last_logout
 
-            if result.last_login is not None:
-                login_data.last_login = result.last_login
-            elif result.online:
+            if result_online.last_login is not None:
+                login_data.last_login = result_online.last_login
+            elif result_online.online:
                 login_data.last_login = timezone.now()
 
             login_data.set_last_modified_from_header(
-                response.headers.get("Last-Modified")
+                response_online.headers.get("Last-Modified")
             )
             login_data.last_update = timezone.now()
             login_data.save()
 
-        update_character_location.delay(pk=pk, force_refresh=force_refresh)
-
-
-@shared_task
-def update_all_characters_logins(force_refresh=False):  # noqa: FBT002
-    pks = CharacterAudit.objects.values_list("pk", flat=True)
-    group(update_character_login.s(pk=pk) for pk in pks).set(
-        priority=UPDATE_CHARACTER_LOGIN_PRIORITY
-    ).delay(force_refresh=force_refresh)
-
-
-@shared_task(base=QueueOnce, once={"keys": ["pk"], "graceful": True})
-def update_character_location(pk, force_refresh=False):  # noqa: FBT002
-    char: CharacterAudit = CharacterAudit.objects.select_related("character").get(pk=pk)
-    login_data = CharacterAuditLoginData.objects.get(characteraudit=char)
-    member_activity = MemberActivity.objects.get_or_create(login_data=login_data)[0]
-
-    token = get_token(char.character.character_id, ["esi-location.read_location.v1"])
-    if token:
         try:
-            result, response = esi.client.Location.GetCharactersCharacterIdLocation(
-                character_id=char.character.character_id, token=token
-            ).result(
-                last_modified=member_activity.last_modified,
-                force_refresh=force_refresh,
-                return_response=True,
+            result_location, response_location = (
+                esi.client.Location.GetCharactersCharacterIdLocation(
+                    character_id=char.character.character_id, token=token
+                ).result(
+                    last_modified=member_activity.last_modified,
+                    force_refresh=force_refresh,
+                    return_response=True,
+                )
             )
         except HTTPNotModified as e:
             member_activity.set_last_modified_from_header(
@@ -196,34 +185,50 @@ def update_character_location(pk, force_refresh=False):  # noqa: FBT002
             member_activity.last_updated = timezone.now()
             member_activity.save()
         else:
+            is_docked = (
+                result_location.station_id is not None
+                or result_location.structure_id is not None
+            )
+
             current_activity_location = MemberActivityLocation.objects.get_or_create(
                 member_activity=member_activity,
                 end_time=None,
                 defaults={
-                    "system_id": result.solar_system_id,
+                    "system_id": result_location.solar_system_id,
                     "is_online": login_data.is_online,
+                    "is_docked": is_docked,
                     "start_time": timezone.now(),
                 },
             )[0]
             if (
-                result.solar_system_id != current_activity_location.system_id
+                result_location.solar_system_id != current_activity_location.system_id
                 or login_data.is_online != current_activity_location.is_online
+                or is_docked != current_activity_location.is_docked
             ):
                 current_activity_location.end_time = timezone.now()
                 current_activity_location.save()
 
                 MemberActivityLocation.objects.create(
                     member_activity=member_activity,
-                    system_id=result.solar_system_id,
+                    system_id=result_location.solar_system_id,
                     is_online=login_data.is_online,
+                    is_docked=is_docked,
                     start_time=timezone.now(),
                 )
 
             member_activity.set_last_modified_from_header(
-                response.headers.get("Last-Modified")
+                response_location.headers.get("Last-Modified")
             )
             member_activity.last_updated = timezone.now()
             member_activity.save()
+
+
+@shared_task
+def update_all_characters_logins(force_refresh=False):  # noqa: FBT002
+    pks = CharacterAudit.objects.values_list("pk", flat=True)
+    group(update_character_login.s(pk=pk) for pk in pks).set(
+        priority=UPDATE_CHARACTER_LOGIN_PRIORITY
+    ).delay(force_refresh=force_refresh)
 
 
 @shared_task

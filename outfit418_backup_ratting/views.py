@@ -216,6 +216,7 @@ def member_activity_data(request):
                 "x": [ms(seg_start), ms(seg_end)],
                 "y": location.member_activity.login_data.characteraudit.character.character_name,
                 "online": location.is_online,
+                "docked": location.is_docked,
                 "system": location.system.name,
             }
         )

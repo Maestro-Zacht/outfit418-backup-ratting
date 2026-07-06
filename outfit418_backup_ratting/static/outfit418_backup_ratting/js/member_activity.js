@@ -17,6 +17,10 @@ $(document).ready(function () {
     const fmtUtc = (v) => moment.utc(v).format('YYYY-MM-DD HH:mm');
 
     const LABEL_PADDING = 6;
+    const LABEL_FONT = '11px sans-serif';
+    const ICON_DOCKED = ''; // fa-anchor
+    const ICON_FONT = '900 11px "Font Awesome 6 Free"';
+    const ICON_GAP = 3;
 
     const segmentLabelsPlugin = {
         id: 'segmentLabels',
@@ -25,8 +29,7 @@ $(document).ready(function () {
             const meta = chart.getDatasetMeta(0);
             const data = chart.data.datasets[0].data;
             ctx.save();
-            ctx.font = '11px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = '#fff';
             meta.data.forEach((bar, i) => {
@@ -35,7 +38,13 @@ $(document).ready(function () {
                     return;
                 }
                 const { x, y, base } = bar.getProps(['x', 'y', 'base'], false);
-                const maxWidth = Math.abs(x - base) - LABEL_PADDING;
+                let iconWidth = 0;
+                if (raw.docked) {
+                    ctx.font = ICON_FONT;
+                    iconWidth = ctx.measureText(ICON_DOCKED).width + ICON_GAP;
+                }
+                ctx.font = LABEL_FONT;
+                const maxWidth = Math.abs(x - base) - LABEL_PADDING - iconWidth;
                 let label = raw.system;
                 if (ctx.measureText(label).width > maxWidth) {
                     while (label.length > 2 && ctx.measureText(label + '…').width > maxWidth) {
@@ -46,7 +55,13 @@ $(document).ready(function () {
                     }
                     label += '…';
                 }
-                ctx.fillText(label, (x + base) / 2, y);
+                const startX = (x + base) / 2 - (iconWidth + ctx.measureText(label).width) / 2;
+                if (raw.docked) {
+                    ctx.font = ICON_FONT;
+                    ctx.fillText(ICON_DOCKED, startX, y);
+                    ctx.font = LABEL_FONT;
+                }
+                ctx.fillText(label, startX + iconWidth, y);
             });
             ctx.restore();
         },
@@ -90,7 +105,7 @@ $(document).ready(function () {
                         label: (item) => {
                             const r = item.raw;
                             const dur = moment.duration(r.x[1] - r.x[0]).humanize();
-                            return `${r.online ? 'Online' : 'Offline'} in ${r.system}: ` +
+                            return `${r.online ? 'Online' : 'Offline'}${r.docked ? ' (docked)' : ''} in ${r.system}: ` +
                                 `${fmtUtc(r.x[0])} – ${fmtUtc(r.x[1])} ET (${dur})`;
                         },
                     },
@@ -98,6 +113,10 @@ $(document).ready(function () {
             },
         },
     });
+
+    if (document.fonts && document.fonts.load) {
+        document.fonts.load(ICON_FONT).then(() => chart.draw());
+    }
 
     function loadData() {
         $.ajax({
