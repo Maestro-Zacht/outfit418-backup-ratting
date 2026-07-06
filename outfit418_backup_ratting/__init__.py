@@ -1,5 +1,5 @@
 """Top-level package for outfit418-backup-ratting."""
 
 __author__ = """Matteo Ghia"""
-__email__ = 'matteo.ghia@yahoo.it'
-__version__ = '0.8.3'
+__email__ = "matteo.ghia@yahoo.it"
+__version__ = "0.9.0"
