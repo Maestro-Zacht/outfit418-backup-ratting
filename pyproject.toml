@@ -32,3 +32,130 @@ Changelog = "https://github.com/Maestro-Zacht/outfit418-backup-ratting/releases"
 
 [tool.flit.module]
 name = "outfit418_backup_ratting"
+
+
+[tool.ruff]
+extend-exclude = [
+    ".devcontainer/*.py",
+    "allianceauth_pve/migrations",
+    "runtests.py",
+    "testauth",
+]
+lint.extend-select = [
+    "A",
+    "AIR",
+    "ARG",
+    "ASYNC",
+    "B",
+    "BLE",
+    "C4",
+    "COM",
+    "D",
+    "DJ",
+    "DTZ",
+    "E",
+    "EM",
+    "EXE",
+    "F",
+    "FA",
+    "FAST",
+    "FBT",
+    "FIX",
+    "FLY",
+    "FURB",
+    "G",
+    "I",
+    "ICN",
+    "INP",
+    "INT",
+    "ISC",
+    "LOG",
+    "N",
+    "NPY",
+    "PD",
+    "PERF",
+    "PGH",
+    "PIE",
+    "PL",
+    "PTH",
+    "PYI",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "SLOT",
+    "T10",
+    "T20",
+    "TC",
+    "TD",
+    "TID",
+    "TRY",
+    "UP",
+    "W",
+    "YTT",
+]
+lint.ignore = [
+    "COM812",
+    "D1",
+    "D203",
+    "D213",
+    "E501",
+    "FBT001",
+    "PLR2004",
+    "S311",
+]
+lint.per-file-ignores."*_test.py" = [
+    "ANN",
+    "ARG001",
+    "D",
+    "EM102",
+    "PLC0415",
+    "PLR2004",
+    "S101",
+    "S105",
+    "S106",
+    "S107",
+    "SLF001"
+]
+lint.per-file-ignores."conftest.py" = [
+    "ANN",
+    "ARG001",
+    "D",
+    "EM102",
+    "PLC0415",
+    "PLR2004",
+    "S101",
+    "S105",
+    "S106",
+    "S107",
+    "SLF001"
+]
+# IGNORE RULES FOR TESTS
+# S101    # Flake8-bandit - asserts are standard in pytest
+# S105    # Flake8-bandit - possible hardcoded password
+# S106    # Flake8-bandit - possible hardcoded password in function argument
+# S107    # Flake8-bandit - hardcoded passwords in function defaults (test helpers need defaults)
+# PLR2004 # Pylint - magic values (e.g. 404, 200) are common in tests
+# SLF001  # Flake8-self - private member access needed to test internal state
+# D       # Pydocstyle - docstrings are often redundant in verbose test names
+# ANN     # Flake8-annotations - type annotations are unnecessary overhead for tests
+# ARG001  # Flake8-unused-arguments - pytest fixtures ensure state exists even when not directly used
+# PLC0415 # Pylint - local imports in tests are valid for test isolation and self-contained tests
+# EM102   # Flake8-errmsg - f-string exceptions in test helpers are acceptable for debugging
+lint.per-file-ignores."test_*.py" = [
+    "ANN",
+    "ARG001",
+    "D",
+    "EM102",
+    "PLC0415",
+    "PLR2004",
+    "S101",
+    "S105",
+    "S106",
+    "S107",
+    "SLF001"
+]
+lint.flake8-boolean-trap.extend-allowed-calls = [ "django.db.models.Value", "pydantic.Field" ]

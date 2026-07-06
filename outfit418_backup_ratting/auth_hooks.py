@@ -37,6 +37,16 @@ class Outfit418FindJeremyHook(MenuItemHook):
         return ''
 
 
+class Outfit418MemberActivityHook(MenuItemHook):
+    def __init__(self):
+        super().__init__("Member Activity", "fas fa-chart-gantt", "outfit418backup:member_activity", navactive=['outfit418backup:member_activity'])
+
+    def render(self, request):
+        if request.user.has_perm('outfit418_backup_ratting.view_member_activity'):
+            return super().render(request)
+        return ''
+
+
 class Outfit418BackupEventsHook(MenuItemHook):
     def __init__(self):
         super().__init__("Event Backups", "fas fa-calendar", "outfit418backup:event_backups", navactive=['outfit418backup:event_backups'])
@@ -60,6 +70,11 @@ def register_audit_menu():
 @hooks.register('menu_item_hook')
 def register_find_jeremy_menu():
     return Outfit418FindJeremyHook()
+
+
+@hooks.register('menu_item_hook')
+def register_member_activity_menu():
+    return Outfit418MemberActivityHook()
 
 
 @hooks.register('menu_item_hook')

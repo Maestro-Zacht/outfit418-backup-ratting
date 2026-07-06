@@ -25,6 +25,7 @@ class General(models.Model):
         permissions = (
             ("audit_corp", "Can audit corp members' alts"),
             ("find_jeremy", "Can find Jeremy"),
+            ("view_member_activity", "Can view member activity"),
         )
 
 
