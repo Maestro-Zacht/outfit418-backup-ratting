@@ -20,8 +20,7 @@ def get_token(character_id: int, scopes: list) -> Token | Literal[False]:
     )
     if token:
         return token
-    else:
-        return False
+    return False
 
 
 def get_or_create_char(character_id: int) -> EveCharacter:

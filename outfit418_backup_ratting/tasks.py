@@ -7,8 +7,10 @@ from celery import group, shared_task
 from celery_once import QueueOnce
 from corptools.models import CharacterAsset, CharacterAudit
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Subquery
 from django.utils import timezone
 from esi.exceptions import HTTPNotModified
+from esi.models import Token
 
 from .models import (
     CharacterAuditLoginData,
@@ -30,6 +32,10 @@ logger = get_extension_logger(__name__)
 
 
 UPDATE_CHARACTER_LOGIN_PRIORITY = 6
+UPDATE_CHARACTER_LOGIN_SCOPES = [
+    "esi-location.read_online.v1",
+    "esi-location.read_location.v1",
+]
 
 
 @shared_task
@@ -136,7 +142,7 @@ def update_character_login(pk, force_refresh=False):  # noqa: FBT002
 
     token = get_token(
         char.character.character_id,
-        ["esi-location.read_online.v1", "esi-location.read_location.v1"],
+        UPDATE_CHARACTER_LOGIN_SCOPES,
     )
     if token:
         try:
@@ -221,14 +227,38 @@ def update_character_login(pk, force_refresh=False):  # noqa: FBT002
             )
             member_activity.last_updated = timezone.now()
             member_activity.save()
+    else:
+        member_activity.locations.filter(end_time=None).update(
+            end_time=member_activity.last_updated
+        )
 
 
 @shared_task
 def update_all_characters_logins(force_refresh=False):  # noqa: FBT002
-    pks = CharacterAudit.objects.values_list("pk", flat=True)
-    group(update_character_login.s(pk=pk) for pk in pks).set(
+    token_qs = Token.objects.filter(
+        character_id=OuterRef("character__character_id")
+    ).require_scopes(UPDATE_CHARACTER_LOGIN_SCOPES)
+
+    update_pks: list[int] = list(
+        CharacterAudit.objects.filter(Exists(token_qs)).values_list("pk", flat=True)
+    )
+    group(update_character_login.s(pk=pk) for pk in update_pks).set(
         priority=UPDATE_CHARACTER_LOGIN_PRIORITY
     ).delay(force_refresh=force_refresh)
+
+    MemberActivityLocation.objects.exclude(
+        member_activity__login_data__characteraudit_id__in=update_pks
+    ).filter(end_time=None, member_activity__last_updated=None).delete()
+
+    MemberActivityLocation.objects.exclude(
+        member_activity__login_data__characteraudit_id__in=update_pks
+    ).filter(end_time=None).update(
+        end_time=Subquery(
+            MemberActivity.objects.filter(pk=OuterRef("member_activity_id")).values(
+                "last_updated"
+            )
+        )
+    )
 
 
 @shared_task

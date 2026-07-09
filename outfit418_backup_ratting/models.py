@@ -77,6 +77,9 @@ class MemberActivity(models.Model):
     last_modified = models.DateTimeField(null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
 
+    if TYPE_CHECKING:
+        locations: models.manager.RelatedManager["MemberActivityLocation"]
+
     def set_last_modified_from_header(self, last_modified_header: str):
         self.last_modified = datetime.strptime(
             last_modified_header,
