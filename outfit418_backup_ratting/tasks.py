@@ -147,7 +147,7 @@ def update_character_login(pk, force_refresh=False):  # noqa: FBT002
                 esi.client.Location.GetCharactersCharacterIdOnline(
                     character_id=char.character.character_id, token=token
                 ).result(
-                    last_modified=login_data.last_modified,
+                    use_etag=False,
                     force_refresh=force_refresh,
                     return_response=True,
                 )
@@ -176,7 +176,7 @@ def update_character_login(pk, force_refresh=False):  # noqa: FBT002
                 esi.client.Location.GetCharactersCharacterIdLocation(
                     character_id=char.character.character_id, token=token
                 ).result(
-                    last_modified=member_activity.last_modified,
+                    use_etag=False,
                     force_refresh=force_refresh,
                     return_response=True,
                 )

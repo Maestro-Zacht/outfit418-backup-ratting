@@ -41,6 +41,6 @@ def get_user_or_fake(character_id) -> User:
     char = get_or_create_char(character_id)
     try:
         ownership = CharacterOwnership.objects.get(character=char)
-        return ownership.user
     except CharacterOwnership.DoesNotExist:
         return get_default_user()
+    return ownership.user
