@@ -19,10 +19,6 @@ CELERYBEAT_SCHEDULE['outfit418_update_fake_chars'] = {
     'task': 'outfit418_backup_ratting.tasks.update_fake_users',
     'schedule': crontab(minute=0, hour=0),
 }
-CELERYBEAT_SCHEDULE['outfit418_update_jeremy'] = {
-    'task': 'outfit418_backup_ratting.tasks.update_ship_names',
-    'schedule': crontab(minute='52'),
-}
 CELERYBEAT_SCHEDULE['outfit418_update_chars_logins'] = {
     'task': 'outfit418_backup_ratting.tasks.update_all_characters_logins',
     'schedule': crontab(minute='*/5'),

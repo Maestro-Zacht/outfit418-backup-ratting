@@ -1,11 +1,9 @@
-from collections import defaultdict
-
 from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth_pve.models import Entry, EntryCharacter, Rotation
 from celery import group, shared_task
 from celery_once import QueueOnce
-from corptools.models import CharacterAsset, CharacterAudit
+from corptools.models import CharacterAudit
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Subquery
 from django.utils import timezone
@@ -23,7 +21,6 @@ from .provider import esi
 from .utils import (
     get_default_user,
     get_or_create_char,
-    get_ship_names,
     get_token,
     get_user_or_fake,
 )
@@ -259,26 +256,3 @@ def update_all_characters_logins(force_refresh=False):  # noqa: FBT002
             )
         )
     )
-
-
-@shared_task
-def update_character_ship_names(character_id: int, item_ids: list[int]):
-    token = get_token(character_id, ["esi-assets.read_assets.v1"])
-    if token:
-        get_ship_names(token, item_ids)
-
-
-@shared_task
-def update_ship_names():
-    thannys = CharacterAsset.objects.filter(type_name_id=23911).select_related(
-        "character__character"
-    )
-    thanny_dict = defaultdict(list)
-
-    for thanny in thannys:
-        thanny_dict[thanny.character.character.character_id].append(thanny.item_id)
-
-    group(
-        update_character_ship_names.si(character_id=char_id, item_ids=item_ids)
-        for char_id, item_ids in thanny_dict.items()
-    ).delay()

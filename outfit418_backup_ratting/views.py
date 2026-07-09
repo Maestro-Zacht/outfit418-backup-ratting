@@ -1,11 +1,9 @@
 import pickle
-from collections import defaultdict
 
 from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.services.hooks import get_extension_logger
 from celery import group
 from corptools.models import CharacterAsset, CharacterAudit
-from corptools.task_helpers.char_tasks import get_token
 from django.contrib import messages
 from django.contrib.auth.decorators import (
     login_required,
@@ -32,7 +30,6 @@ from django.utils import timezone
 from .forms import DATETIME_FORMAT, BackupForm, MemberActivityFilterForm
 from .models import CharacterAuditLoginData, EventBackup, MemberActivityLocation
 from .tasks import fetch_char, save_import
-from .utils import get_ship_names
 
 logger = get_extension_logger(__name__)
 
@@ -233,25 +230,15 @@ def member_activity_data(request):
 @login_required
 @permission_required("outfit418_backup_ratting.find_jeremy")
 def find_jeremy(request):
-    thannys = CharacterAsset.objects.filter(type_name_id=23911).select_related(
-        "character__character"
+    thannys = CharacterAsset.objects.filter(
+        Q(name__icontains="jeremy") | Q(name__icontains="meremy"), type_name_id=23911
+    ).select_related(
+        "character__character",
+        "location_name",
     )
-    thanny_dict = defaultdict(list)
-    jeremy_owners = defaultdict(list)
-
-    for thanny in thannys:
-        thanny_dict[thanny.character.character].append(thanny.item_id)
-
-    for char, item_ids in thanny_dict.items():
-        token = get_token(char.character_id, ["esi-assets.read_assets.v1"])
-        if token:
-            names = get_ship_names(token, item_ids)
-            for name in names:
-                if "jeremy" in name.lower():
-                    jeremy_owners[char].append(name)
 
     context = {
-        "jeremy_owners": dict(jeremy_owners),
+        "thannys": thannys,
     }
 
     return render(request, "outfit418_backup_ratting/find_jeremy.html", context=context)

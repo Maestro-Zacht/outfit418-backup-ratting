@@ -12,18 +12,16 @@
             <thead>
                 <tr>
                     <th>Character</th>
-                    <th>Ships</th>
+                    <th>Ship Name</th>
+                    <th>Location</th>
                 </tr>
             </thead>
             <tbody>
-                {% for char, names in jeremy_owners.items %}
+                {% for thanny in thannys %}
                     <tr>
-                        <td>{{ char.character_name }}</td>
-                        <td>
-                            {% for name in names %}
-                                <span>{{ name }},</span>
-                            {% endfor %}
-                        </td>
+                        <td>{{ thanny.character.character.character_name }}</td>
+                        <td>{{ thanny.name }}</td>
+                        <td>{{ thanny.location_name.location_name }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

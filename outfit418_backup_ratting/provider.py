@@ -12,7 +12,6 @@ esi = ESIClientProvider(
     ua_version=__version__,
     ua_url=github_url,
     operations=[
-        "PostCharactersCharacterIdAssetsNames",
         "GetCharactersCharacterIdOnline",
         "GetCharactersCharacterIdLocation",
     ],
