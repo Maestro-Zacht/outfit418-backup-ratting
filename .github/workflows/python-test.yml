@@ -62,7 +62,7 @@ jobs:
   #       uses: actions/checkout@v6
 
   #     - name: Setup Python ${{ matrix.python-version }}
-  #       uses: actions/setup-python@v6
+  #       uses: actions/setup-python@v7
   #       with:
   #         python-version: ${{ matrix.python-version }}
   #         check-latest: true
@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Python 3
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.x"
           check-latest: true
